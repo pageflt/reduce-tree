@@ -48,98 +48,98 @@ import argparse
 
 
 def parent_copy(src, dst, root):
-	# Copy the `src` file to the `dst` directory while preserving
-	# directory structure from the start of `root`.
-	# This mimics the --parent option of GNU cp(1).
-	try:
-		parent_dirs = os.path.split(os.path.relpath(src,root))[0]
-		if parent_dirs:
-			dst = "%s/%s" % (dst, parent_dirs)
-			if not os.path.exists(dst):
-				os.makedirs(dst, 0755)
-		shutil.copy2(src, dst)
-	except Exception as e:
-		raise Exception("Could not copy %s: %s" % (src, str(e)))
+    # Copy the `src` file to the `dst` directory while preserving
+    # directory structure from the start of `root`.
+    # This mimics the --parent option of GNU cp(1).
+    try:
+        parent_dirs = os.path.split(os.path.relpath(src,root))[0]
+        if parent_dirs:
+            dst = "%s/%s" % (dst, parent_dirs)
+            if not os.path.exists(dst):
+                os.makedirs(dst, 0755)
+        shutil.copy2(src, dst)
+    except Exception as e:
+        raise Exception("Could not copy %s: %s" % (src, str(e)))
 
 
 def collect_tree(src, dst):
-	# Find all C files with modification time older than access time
-	# and copy them to the reduced source tree directory.
-	try:
-		src = os.path.abspath(src)
-		dst = os.path.abspath(dst)
-		for root, subdirs, files in os.walk(src):
-			for f in files:
-				if f.endswith((".c", ".h")):
-					path = "%s/%s" % (root, f)
-					if os.path.islink(path):
-						continue
-					if os.path.getatime(path) > os.path.getmtime(path):
-						parent_copy(path, dst, src)
-	except Exception as e:
-		raise e
+    # Find all C files with modification time older than access time
+    # and copy them to the reduced source tree directory.
+    try:
+        src = os.path.abspath(src)
+        dst = os.path.abspath(dst)
+        for root, subdirs, files in os.walk(src):
+            for f in files:
+                if f.endswith((".c", ".h")):
+                    path = "%s/%s" % (root, f)
+                    if os.path.islink(path):
+                        continue
+                    if os.path.getatime(path) > os.path.getmtime(path):
+                        parent_copy(path, dst, src)
+    except Exception as e:
+        raise e
 
 
 def prepare_tree(src):
-	# Set the modification time of all C source and header files to now, and
-	# the access time to now-48h.
-	try:
-		m_time = time.time()
-		a_time = m_time - (48 * 3600)
+    # Set the modification time of all C source and header files to now, and
+    # the access time to now-48h.
+    try:
+        m_time = time.time()
+        a_time = m_time - (48 * 3600)
 
-		for root, subdirs, files in os.walk(src):
-			for f in files:
-				if f.endswith((".c", ".h")):
-					path = "%s/%s" % (root, f)
-					if not os.path.islink(path):
-						os.utime(path, (a_time, m_time))
-	except Exception as e:
-		raise e
+        for root, subdirs, files in os.walk(src):
+            for f in files:
+                if f.endswith((".c", ".h")):
+                    path = "%s/%s" % (root, f)
+                    if not os.path.islink(path):
+                        os.utime(path, (a_time, m_time))
+    except Exception as e:
+        raise e
 
 
 def parse_args():
-	# Handle argument parsing.
-	parser = argparse.ArgumentParser()
-	parser.add_argument("-p", "--prepare", dest="prepare", action="store_true",
-						help="prepare source tree for reduction (pre-build)")
-	parser.add_argument("-c", "--collect", dest="collect", action="store_true",
-						help="collect files into a reduced source tree (post-build)")
-	parser.add_argument("-s", "--src", dest="src",
-						help="source directory of the initial tree")
-	parser.add_argument("-d", "--dst", dest="dst",
-						help="destination directory for the reduced tree")
-	return parser.parse_args()
+    # Handle argument parsing.
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--prepare", dest="prepare", action="store_true",
+                        help="prepare source tree for reduction (pre-build)")
+    parser.add_argument("-c", "--collect", dest="collect", action="store_true",
+                        help="collect files into a reduced source tree (post-build)")
+    parser.add_argument("-s", "--src", dest="src",
+                        help="source directory of the initial tree")
+    parser.add_argument("-d", "--dst", dest="dst",
+                        help="destination directory for the reduced tree")
+    return parser.parse_args()
 
 
 def main():
-	# Parse arguments, ensure some basic sanity.
-	args = parse_args()
-	if (args.prepare and args.collect) or (not args.prepare and not args.collect):
-		raise Exception("You must use either --collect or --prepare")
-	if args.prepare and not args.src:
-		raise Exception("You must use --src in conjunction with --prepare")
-	if args.collect and (not args.src or not args.dst):
-		raise Exception("You must use --src and --dst in conjunction with --collect")
-	if not os.path.exists(args.src):
-		raise Exception("Directory %s does not exist" % args.src)
+    # Parse arguments, ensure some basic sanity.
+    args = parse_args()
+    if (args.prepare and args.collect) or (not args.prepare and not args.collect):
+        raise Exception("You must use either --collect or --prepare")
+    if args.prepare and not args.src:
+        raise Exception("You must use --src in conjunction with --prepare")
+    if args.collect and (not args.src or not args.dst):
+        raise Exception("You must use --src and --dst in conjunction with --collect")
+    if not os.path.exists(args.src):
+        raise Exception("Directory %s does not exist" % args.src)
 
-	if args.prepare:
-		# Prepare source tree for reduction.
-		try:
-			prepare_tree(args.src)
-		except Exception as e:
-			raise Exception("Could not prepare: %s" % str(e))
-	else:
-		# Collect source files into a reduced tree.
-		try:
-			collect_tree(args.src, args.dst)
-		except Exception as e:
-			raise Exception("Could not collect: %s" % str(e))
+    if args.prepare:
+        # Prepare source tree for reduction.
+        try:
+            prepare_tree(args.src)
+        except Exception as e:
+            raise Exception("Could not prepare: %s" % str(e))
+    else:
+        # Collect source files into a reduced tree.
+        try:
+            collect_tree(args.src, args.dst)
+        except Exception as e:
+            raise Exception("Could not collect: %s" % str(e))
 
 
 if __name__ == "__main__":
-	try:
-		main()
-	except Exception as e:
-		print "Error: %s" % str(e)
+    try:
+        main()
+    except Exception as e:
+        print "Error: %s" % str(e)
 
