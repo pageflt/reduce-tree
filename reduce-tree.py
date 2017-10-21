@@ -42,7 +42,7 @@ import argparse
 # older than their modification time. We collect all these files and copy them
 # to the directory specified to contain the reduced source tree.
 #
-# This will not work on filesystems mounted with noatime/norelatime options.
+# This will not work on filesystems mounted with noatime option.
 #
 # This project is hosted at https://github.com/pageflt/reduce-tree
 

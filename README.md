@@ -22,9 +22,9 @@ This is not a novel concept. There are similar tools by [Jann Horn](https://git.
 and [Joshua J. Drake](https://github.com/jduck/lk-reducer), which are based on
 the inotify subsystem of the Linux kernel. This tool makes use of access and modification
 times of files, as they behave under `relatime` mount option. For more details check the
-"How it works?" section.
+["How it works?"](https://github.com/pageflt/reduce-tree#how-it-works) section.
 
-This tool will not work as intended on filesystems mounted with `noatime`/`norelatime` options.
+This tool will not work as intended on filesystems mounted with `noatime`  option.
 
 
 ## How do I use it?
